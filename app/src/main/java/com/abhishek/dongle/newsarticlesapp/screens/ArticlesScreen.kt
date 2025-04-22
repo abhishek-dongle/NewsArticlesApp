@@ -1,5 +1,8 @@
 package com.abhishek.dongle.newsarticlesapp.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,15 +12,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.collectAsState
@@ -26,11 +35,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.abhishek.dongle.newsarticlesapp.article.Article
+import com.abhishek.dongle.newsarticlesapp.article.ArticleFilterType
 import com.abhishek.dongle.newsarticlesapp.article.ArticlesViewModel
 
 @Composable
@@ -39,17 +50,15 @@ fun ArticlesScreen(articleViewModel: ArticlesViewModel) {
 
     Column {
         AppBar()
-        if(articleState.value.loading)
+        if (articleState.value.loading)
             Loader()
-        if(articleState.value.error != null)
+        if (articleState.value.error != null)
             ErrorMessage(articleState.value.error!!)
-        if(articleState.value.articles.isNotEmpty()) {
-            ArticleDropdown()
+        if (articleState.value.articles.isNotEmpty()) {
+            ArticleDropdown(articleState.value.articles)
             ArticleListView(articleState.value.articles)
         }
     }
-
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,50 +70,77 @@ private fun AppBar() {
 }
 
 @Composable
-private fun ArticleDropdown() {
-    Row(
+private fun ArticleDropdown(articles: List<Article>) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 160.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        ArticleDropdownMenu("Author", listOf("Author 1", "Author 2", "Author 3", "Author 4"))
-        ArticleDropdownMenu("Category", listOf("Category 1", "Category 2", "Category 3", "Category 4"))
-        ArticleDropdownMenu("Article Type", listOf("Type 1", "Type 2", "Type 3", "Type 4"))
-        ArticleDropdownMenu("Tag", listOf("Tag 1", "Tag 2", "Tag 3", "Tag 4"))
+        item { ArticleDropdownMenu(ArticleFilterType.AUTHOR.text, articles.map { it.author }) }
+        item { ArticleDropdownMenu(ArticleFilterType.CATEGORY.text, articles.map { it.category }) }
+        item {
+            ArticleDropdownMenu(
+                ArticleFilterType.ARTICLE_TYPE.text,
+                articles.map { it.articleType })
+        }
+        item { ArticleDropdownMenu(ArticleFilterType.TAG.text, articles.map { it.tag }) }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ArticleDropdownMenu(label: String, items: List<String>) {
+fun ArticleDropdownMenu(
+    label: String,
+    items: List<String?>,
+    modifier: Modifier = Modifier
+) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedItem by remember { mutableStateOf(items[0]) }
+    var selectedItem by remember { mutableStateOf(items.firstOrNull() ?: "Select") }
 
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-        OutlinedTextField(
-            value = selectedItem,
-            onValueChange = {},
-            label = { Text(label) },
-            readOnly = true,
-            modifier = Modifier
-                .size(120.dp, 56.dp)
-                .menuAnchor()
+    Column(modifier = modifier.padding(4.dp)) {
+        Text(
+            text = label, style = MaterialTheme.typography.labelSmall,
+            maxLines = 1
         )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            items.forEach { item ->
-                DropdownMenuItem(
-                    text = { Text(item) },
-                    onClick = {
-                        selectedItem = item
-                        expanded = false
+
+        Box {
+            OutlinedTextField(
+                value = selectedItem,
+                onValueChange = {},
+                readOnly = true,
+                maxLines = 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = true }, // Does not work well here!
+                trailingIcon = {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                     }
-                )
+                }
+            )
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                items.distinct().forEach { item ->
+                    DropdownMenuItem(
+                        onClick = {
+                            selectedItem = item ?: "Unknown"
+                            expanded = false
+                        },
+                        text = {
+                            Text(
+                                text = item ?: "Unknown",
+                                maxLines = 1
+                            )
+                        }
+                    )
+                }
             }
         }
     }
@@ -125,7 +161,7 @@ private fun ArticleListView(articles: List<Article>) {
 
 @Composable
 private fun ArticleItemView(article: Article) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
@@ -133,10 +169,26 @@ private fun ArticleItemView(article: Article) {
         AsyncImage(
             model = article.imageUrl,
             contentDescription = null,
-            modifier = Modifier.fillMaxWidth(0.3f)
+            modifier = Modifier
+                .size(80.dp)
+                .background(Color.Black)
         )
-        Text(text = article.title)
-        Text(text = article.desc)
+        Column(
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = article.title,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1
+            )
+            Text(
+                text = article.desc,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 2
+            )
+        }
     }
 }
 
