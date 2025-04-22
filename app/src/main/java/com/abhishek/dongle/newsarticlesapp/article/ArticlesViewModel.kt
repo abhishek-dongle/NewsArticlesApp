@@ -1,4 +1,4 @@
-package com.abhishek.dongle.newsarticlesapp.base.article
+package com.abhishek.dongle.newsarticlesapp.article
 
 import com.abhishek.dongle.newsarticlesapp.base.BaseViewModel
 import kotlinx.coroutines.delay

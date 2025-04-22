@@ -1,4 +1,4 @@
-package com.abhishek.dongle.newsarticlesapp.base.article
+package com.abhishek.dongle.newsarticlesapp.article
 
 data class ArticlesState(
     val articles: List<Article> = listOf(),

@@ -1,4 +1,4 @@
-package com.abhishek.dongle.newsarticlesapp.base.article
+package com.abhishek.dongle.newsarticlesapp.article
 
 data class Article(
     val title: String,
