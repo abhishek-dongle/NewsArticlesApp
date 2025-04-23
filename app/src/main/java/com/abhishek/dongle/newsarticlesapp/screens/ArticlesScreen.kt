@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -34,16 +36,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.abhishek.dongle.newsarticlesapp.article.Article
 import com.abhishek.dongle.newsarticlesapp.article.ArticleFilterType
 import com.abhishek.dongle.newsarticlesapp.article.ArticlesViewModel
 
 @Composable
-fun ArticlesScreen(articleViewModel: ArticlesViewModel) {
+fun ArticlesScreen(
+    navController: NavHostController,
+    articleViewModel: ArticlesViewModel
+) {
     val articleState = articleViewModel.articleState.collectAsState()
 
     Column {
@@ -54,7 +61,7 @@ fun ArticlesScreen(articleViewModel: ArticlesViewModel) {
             ErrorMessage(articleState.value.error!!)
         if (articleState.value.articles.isNotEmpty()) {
             ArticleDropdown(articleState.value.articles)
-            ArticleListView(articleState.value.articles)
+            ArticleListView(articleState.value.articles, navController, articleViewModel)
         }
     }
 }
@@ -103,7 +110,7 @@ fun ArticleDropdownMenu(
                 maxLines = 1,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { expanded = true }, // Does not work well here!
+                    .clickable { expanded = true },
                 trailingIcon = {
                     IconButton(onClick = { expanded = true }) {
                         Icon(Icons.Default.ArrowDropDown, contentDescription = null)
@@ -137,25 +144,39 @@ fun ArticleDropdownMenu(
 }
 
 @Composable
-private fun ArticleListView(articles: List<Article>) {
+private fun ArticleListView(
+    articles: List<Article>,
+    navController: NavHostController,
+    viewModel: ArticlesViewModel
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(8.dp)
     ) {
         items(articles) { article ->
-            ArticleItemView(article)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.Transparent,
+                ),
+                shape = RectangleShape,
+                onClick = {
+                    viewModel.setSelectedArticle(article)
+                    navController.navigate(Screens.ARTICLEDETAILS.screenName)
+                }
+            ) {
+                ArticleItemView(article)
+            }
         }
     }
 }
 
 @Composable
 private fun ArticleItemView(article: Article) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-    ) {
+    Row {
         AsyncImage(
             model = article.imageUrl,
             contentDescription = null,

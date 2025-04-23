@@ -10,7 +10,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.abhishek.dongle.newsarticlesapp.article.ArticlesViewModel
-import com.abhishek.dongle.newsarticlesapp.screens.ArticlesScreen
 import com.abhishek.dongle.newsarticlesapp.ui.theme.NewsArticlesAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -25,7 +24,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ArticlesScreen(articleViewModel = articlesViewModel)
+                    AppNavHost(viewModel = articlesViewModel)
                 }
             }
         }

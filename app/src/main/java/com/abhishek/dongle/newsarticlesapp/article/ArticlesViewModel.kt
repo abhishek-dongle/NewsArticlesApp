@@ -14,6 +14,10 @@ class ArticlesViewModel : BaseViewModel() {
         getArticles()
     }
 
+    fun setSelectedArticle(article: Article) {
+        _articleState.value = _articleState.value.copy(selectedArticle = article)
+    }
+
     private fun getArticles() {
         scope.launch {
             val fetchedArticles = fetchArticles()

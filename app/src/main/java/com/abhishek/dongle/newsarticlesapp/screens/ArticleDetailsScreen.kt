@@ -34,11 +34,10 @@ import com.abhishek.dongle.newsarticlesapp.article.ArticlesViewModel
 @Composable
 fun ArticleDetailsScreen(articleViewModel: ArticlesViewModel) {
     val articleState = articleViewModel.articleState.collectAsState()
-    val articles = articleState.value.articles
-    val article = articles.firstOrNull()
+    val selectedArticle = articleState.value.selectedArticle
     Column(modifier = Modifier.fillMaxSize()) {
         AppBar("Article Details")
-        ArticleDetails(article)
+        ArticleDetails(selectedArticle)
     }
 }
 
