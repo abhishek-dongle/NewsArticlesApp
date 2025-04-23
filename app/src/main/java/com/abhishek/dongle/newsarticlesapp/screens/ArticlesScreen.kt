@@ -60,14 +60,14 @@ fun ArticlesScreen(
         if (articleState.value.error != null)
             ErrorMessage(articleState.value.error!!)
         if (articleState.value.articles.isNotEmpty()) {
-            ArticleDropdown(articleState.value.articles)
+            ArticleDropdown(articleViewModel)
             ArticleListView(articleState.value.articles, navController, articleViewModel)
         }
     }
 }
 
 @Composable
-private fun ArticleDropdown(articles: List<Article>) {
+private fun ArticleDropdown(viewModel: ArticlesViewModel) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 160.dp),
         modifier = Modifier
@@ -76,27 +76,23 @@ private fun ArticleDropdown(articles: List<Article>) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        item { ArticleDropdownMenu(ArticleFilterType.AUTHOR.text, articles.map { it.author }) }
-        item { ArticleDropdownMenu(ArticleFilterType.CATEGORY.text, articles.map { it.category }) }
-        item {
-            ArticleDropdownMenu(
-                ArticleFilterType.ARTICLE_TYPE.text,
-                articles.map { it.articleType })
-        }
-        item { ArticleDropdownMenu(ArticleFilterType.TAG.text, articles.map { it.tag }) }
+        val state = viewModel.articleState.value
+        item { ArticleDropdownMenu(ArticleFilterType.AUTHOR.text, state.authors) }
+        item { ArticleDropdownMenu(ArticleFilterType.CATEGORY.text, state.categories) }
+        item { ArticleDropdownMenu(ArticleFilterType.ARTICLE_TYPE.text, state.articleTypes) }
+        item { ArticleDropdownMenu(ArticleFilterType.TAG.text, state.tags) }
     }
 }
 
 @Composable
 fun ArticleDropdownMenu(
     label: String,
-    items: List<String?>,
-    modifier: Modifier = Modifier
+    items: List<String?>
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedItem by remember { mutableStateOf(items.firstOrNull() ?: "Select") }
 
-    Column(modifier = modifier.padding(4.dp)) {
+    Column(modifier = Modifier.padding(4.dp)) {
         Text(
             text = label, style = MaterialTheme.typography.labelSmall,
             maxLines = 1
@@ -195,7 +191,7 @@ private fun ArticleItemView(article: Article) {
                 maxLines = 1
             )
             Text(
-                text = article.desc,
+                text = article.subtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 2
             )

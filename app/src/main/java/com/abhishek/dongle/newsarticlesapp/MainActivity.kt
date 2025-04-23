@@ -6,9 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.abhishek.dongle.newsarticlesapp.article.ArticlesViewModel
 import com.abhishek.dongle.newsarticlesapp.ui.theme.NewsArticlesAppTheme
 
@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
             NewsArticlesAppTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = Color.White
                 ) {
                     AppNavHost(viewModel = articlesViewModel)
                 }
