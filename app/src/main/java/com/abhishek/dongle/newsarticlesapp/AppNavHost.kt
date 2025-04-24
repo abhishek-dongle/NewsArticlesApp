@@ -8,6 +8,7 @@ import com.abhishek.dongle.newsarticlesapp.article.ArticlesViewModel
 import com.abhishek.dongle.newsarticlesapp.screens.ArticleDetailsScreen
 import com.abhishek.dongle.newsarticlesapp.screens.ArticlesScreen
 import com.abhishek.dongle.newsarticlesapp.screens.Screens
+import com.abhishek.dongle.newsarticlesapp.screens.TaggedArticlesScreen
 
 @Composable
 fun AppNavHost(
@@ -22,8 +23,11 @@ fun AppNavHost(
         composable(Screens.ARTICLES.screenName) {
             ArticlesScreen(navController, viewModel)
         }
-        composable(Screens.ARTICLEDETAILS.screenName) {
-            ArticleDetailsScreen(viewModel)
+        composable(Screens.ARTICLE_DETAILS.screenName) {
+            ArticleDetailsScreen(navController, viewModel)
+        }
+        composable(Screens.TAGGED_ARTICLES.screenName) {
+            TaggedArticlesScreen(navController, viewModel)
         }
     }
 }

@@ -7,14 +7,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,31 +21,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.abhishek.dongle.newsarticlesapp.article.Article
 import com.abhishek.dongle.newsarticlesapp.article.ArticlesViewModel
-import kotlinx.coroutines.delay
 
 @Composable
-fun ArticleDetailsScreen(articleViewModel: ArticlesViewModel) {
+fun ArticleDetailsScreen(
+    navController: NavHostController,
+    articleViewModel: ArticlesViewModel
+) {
     Column(modifier = Modifier.fillMaxSize()) {
-        AppBar("Article Details")
-        ArticleDetails(articleViewModel)
+        AppBar(navController, Screens.ARTICLE_DETAILS.screenName)
+        ArticleDetails(navController, articleViewModel)
     }
 }
 
 @Composable
-fun ArticleDetails(viewModel: ArticlesViewModel) {
-    var showTags by remember { mutableStateOf(false) }
-
-    val selectedArticle = viewModel.articleState.collectAsState().value.selectedArticle ?: return
-    LaunchedEffect(Unit) {
-        delay(1000)
-        showTags = true
-    }
+fun ArticleDetails(
+    navController: NavHostController,
+    viewModel: ArticlesViewModel
+) {
+    val articleState by remember { viewModel.articleState }.collectAsState()
+    val selectedArticle = articleState.selectedArticle!!
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 32.dp)
     ) {
         Text(
             text = selectedArticle.title,
@@ -64,31 +66,7 @@ fun ArticleDetails(viewModel: ArticlesViewModel) {
                 .background(Color.Black)
         )
 
-        Row(modifier = Modifier.padding(top = 10.dp)) {
-            AsyncImage(
-                model = selectedArticle.authorImageUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .height(60.dp)
-                    .background(Color.Black)
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-            ) {
-                Text(
-                    text = selectedArticle.author,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = selectedArticle.authorDesc,
-                    fontWeight = FontWeight.Normal,
-                    maxLines = 2
-                )
-            }
-        }
+        AuthorDetailsCard(selectedArticle)
 
         Text(
             text = selectedArticle.subtitle,
@@ -103,8 +81,41 @@ fun ArticleDetails(viewModel: ArticlesViewModel) {
             WebViewScreen(url = selectedArticle.pageUrl)
         }
 
-        if (showTags)
-            HorizontalList(items = selectedArticle.tag)
+        if (viewModel.articleState.collectAsState().value.selectedArticle?.tag?.size!! > 0)
+            HorizontalList(
+                viewModel = viewModel,
+                navController = navController,
+                tagList = selectedArticle.tag
+            )
+    }
+}
+
+@Composable
+fun AuthorDetailsCard(selectedArticle: Article) {
+    Row(modifier = Modifier.padding(top = 10.dp)) {
+        AsyncImage(
+            model = selectedArticle.authorImageUrl,
+            contentDescription = null,
+            modifier = Modifier
+                .height(60.dp)
+                .background(Color.Black)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Text(
+                text = selectedArticle.author,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = selectedArticle.authorDesc,
+                fontWeight = FontWeight.Normal,
+                maxLines = 2
+            )
+        }
     }
 }
 
@@ -130,20 +141,26 @@ fun WebViewScreen(url: String) {
 }
 
 @Composable
-fun HorizontalList(items: List<String>) {
-    if (items.isEmpty()) return
-
+fun HorizontalList(
+    viewModel: ArticlesViewModel,
+    navController: NavHostController,
+    tagList: List<String>
+) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 12.dp),
+            .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        items(items) { item ->
+        items(tagList) { item ->
             Card(
                 modifier = Modifier.padding(5.dp),
                 elevation = CardDefaults.cardElevation(3.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.Black)
+                colors = CardDefaults.cardColors(containerColor = Color.Black),
+                onClick = {
+                    viewModel.setSelectedTag(tag = item)
+                    navController.navigate(Screens.TAGGED_ARTICLES.screenName)
+                }
             ) {
                 Box(
                     modifier = Modifier.padding(vertical = 8.dp, horizontal = 10.dp),

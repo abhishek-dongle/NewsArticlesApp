@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
@@ -39,8 +38,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
-import com.abhishek.dongle.newsarticlesapp.article.Article
 import com.abhishek.dongle.newsarticlesapp.article.ArticleFilterType
 import com.abhishek.dongle.newsarticlesapp.article.ArticlesViewModel
 
@@ -52,7 +49,7 @@ fun ArticlesScreen(
     val articleState = articleViewModel.articleState.collectAsState()
 
     Column {
-        AppBar("Articles")
+        AppBar(navController, Screens.ARTICLES.screenName)
         if (articleState.value.loading)
             Loader()
         if (articleState.value.error != null)
@@ -141,41 +138,12 @@ private fun ArticleListView(
                     shape = RectangleShape,
                     onClick = {
                         viewModel.setSelectedArticle(article)
-                        navController.navigate(Screens.ARTICLEDETAILS.screenName)
+                        navController.navigate(Screens.ARTICLE_DETAILS.screenName)
                     }
                 ) {
                     ArticleItemView(article)
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun ArticleItemView(article: Article) {
-    Row {
-        AsyncImage(
-            model = article.imageUrl,
-            contentDescription = null,
-            modifier = Modifier
-                .size(80.dp)
-                .background(Color.Black)
-        )
-        Column(
-            modifier = Modifier
-                .padding(start = 8.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = article.title,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1
-            )
-            Text(
-                text = article.subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 2
-            )
         }
     }
 }

@@ -27,6 +27,10 @@ class ArticlesViewModel : BaseViewModel() {
         _articleState.value = _articleState.value.copy(selectedArticle = article)
     }
 
+    fun setSelectedTag(tag: String) {
+        _articleState.value = _articleState.value.copy(selectedArticleTag = tag)
+    }
+
     fun getArticles(forceRefresh: Boolean = false) {
         scope.launch {
             val fetchedArticles = articlesUseCase.getArticles(forceRefresh)
@@ -57,8 +61,7 @@ class ArticlesViewModel : BaseViewModel() {
                     selectedAuthor = author,
                     selectedCategory = ArticleFilterType.CATEGORY.text,
                     selectedArticleType = ArticleFilterType.ARTICLE_TYPE.text,
-                    selectedTag = ArticleFilterType.TAG.text,
-                    filteredArticles = filtered
+                    selectedTag = ArticleFilterType.TAG.text
                 )
 
             ArticleFilterType.CATEGORY ->
@@ -66,8 +69,7 @@ class ArticlesViewModel : BaseViewModel() {
                     selectedAuthor = ArticleFilterType.AUTHOR.text,
                     selectedCategory = category,
                     selectedArticleType = ArticleFilterType.ARTICLE_TYPE.text,
-                    selectedTag = ArticleFilterType.TAG.text,
-                    filteredArticles = filtered
+                    selectedTag = ArticleFilterType.TAG.text
                 )
 
             ArticleFilterType.ARTICLE_TYPE ->
@@ -75,8 +77,7 @@ class ArticlesViewModel : BaseViewModel() {
                     selectedAuthor = ArticleFilterType.AUTHOR.text,
                     selectedCategory = ArticleFilterType.CATEGORY.text,
                     selectedArticleType = articleType,
-                    selectedTag = ArticleFilterType.TAG.text,
-                    filteredArticles = filtered
+                    selectedTag = ArticleFilterType.TAG.text
                 )
 
             ArticleFilterType.TAG ->
@@ -84,8 +85,7 @@ class ArticlesViewModel : BaseViewModel() {
                     selectedAuthor = ArticleFilterType.AUTHOR.text,
                     selectedCategory = ArticleFilterType.CATEGORY.text,
                     selectedArticleType = ArticleFilterType.ARTICLE_TYPE.text,
-                    selectedTag = tag,
-                    filteredArticles = filtered
+                    selectedTag = tag
                 )
         }
 
@@ -96,7 +96,8 @@ class ArticlesViewModel : BaseViewModel() {
                     selectedCategory = filteredState.selectedCategory,
                     selectedArticleType = filteredState.selectedArticleType,
                     selectedTag = filteredState.selectedTag,
-                    filteredArticles = filtered
+                    filteredArticles = filtered,
+                    taggedArticles = filtered
                 )
             )
         }

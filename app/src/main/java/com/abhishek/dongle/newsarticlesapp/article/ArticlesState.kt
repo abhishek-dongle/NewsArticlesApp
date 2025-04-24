@@ -5,6 +5,7 @@ data class ArticlesState(
     val loading: Boolean = false,
     val error: String? = null,
     val selectedArticle: Article? = null,
+    val selectedArticleTag: String? = null,
     val authors: List<String> = listOf(),
     val categories: List<String> = listOf(),
     val articleTypes: List<String> = listOf(),
@@ -13,5 +14,6 @@ data class ArticlesState(
     val selectedCategory: String = ArticleFilterType.CATEGORY.text,
     val selectedArticleType: String = ArticleFilterType.ARTICLE_TYPE.text,
     val selectedTag: String = ArticleFilterType.TAG.text,
-    val filteredArticles: List<Article> = listOf()
+    val filteredArticles: List<Article> = listOf(),
+    val taggedArticles: List<Article> = listOf()
 )
