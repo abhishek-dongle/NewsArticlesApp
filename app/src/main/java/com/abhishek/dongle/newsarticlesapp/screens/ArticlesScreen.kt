@@ -2,7 +2,6 @@ package com.abhishek.dongle.newsarticlesapp.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,8 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -23,14 +20,11 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.collectAsState
@@ -65,95 +59,67 @@ fun ArticlesScreen(
             ErrorMessage(articleState.value.error!!)
         if (articleState.value.articles.isNotEmpty()) {
             ArticleDropdown(articleViewModel)
-            Divider()
-            ArticleListView(articleState.value.articles, navController, articleViewModel)
+            ArticleListView(navController, articleViewModel)
         }
     }
 }
 
 @Composable
-private fun ArticleDropdown(viewModel: ArticlesViewModel) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 160.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        val state = viewModel.articleState.value
-        item { ArticleDropdownMenu(ArticleFilterType.AUTHOR.text, state.authors) }
-        item { ArticleDropdownMenu(ArticleFilterType.CATEGORY.text, state.categories) }
-        item { ArticleDropdownMenu(ArticleFilterType.ARTICLE_TYPE.text, state.articleTypes) }
-        item { ArticleDropdownMenu(ArticleFilterType.TAG.text, state.tags) }
-    }
-}
-
-@Composable
-fun ArticleDropdownMenu(
-    label: String,
-    items: List<String?>
+private fun ArticleDropdown(
+    viewModel: ArticlesViewModel
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    var selectedItem by remember { mutableStateOf(items.firstOrNull() ?: "Select") }
+    val articleState by viewModel.articleState.collectAsState()
 
-    Column(modifier = Modifier.padding(4.dp)) {
-        Text(
-            text = label, style = MaterialTheme.typography.labelSmall,
-            maxLines = 1
+    Row(modifier = Modifier.fillMaxWidth()) {
+        ArticleDropdownMenu(
+            filterType = articleState.selectedAuthor,
+            items = articleState.authors,
+            onItemSelected = { item ->
+                viewModel.filterArticleList(author = item, filterType = ArticleFilterType.AUTHOR)
+            },
+            modifier = Modifier.weight(1f)
         )
-
-        Box {
-            OutlinedTextField(
-                value = selectedItem,
-                onValueChange = {},
-                readOnly = true,
-                maxLines = 1,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = true },
-                trailingIcon = {
-                    IconButton(onClick = { expanded = true }) {
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                    }
-                }
-            )
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                items.distinct().forEach { item ->
-                    DropdownMenuItem(
-                        onClick = {
-                            selectedItem = item ?: "Unknown"
-                            expanded = false
-                        },
-                        text = {
-                            Text(
-                                text = item ?: "Unknown",
-                                maxLines = 1
-                            )
-                        }
-                    )
-                }
-            }
-        }
+        ArticleDropdownMenu(
+            filterType = articleState.selectedCategory,
+            items = articleState.categories,
+            onItemSelected = { item ->
+                viewModel.filterArticleList(
+                    category = item,
+                    filterType = ArticleFilterType.CATEGORY
+                )
+            },
+            modifier = Modifier.weight(1f)
+        )
+        ArticleDropdownMenu(
+            filterType = articleState.selectedArticleType,
+            items = articleState.articleTypes,
+            onItemSelected = { item ->
+                viewModel.filterArticleList(
+                    articleType = item,
+                    filterType = ArticleFilterType.ARTICLE_TYPE
+                )
+            },
+            modifier = Modifier.weight(1f)
+        )
+        ArticleDropdownMenu(
+            filterType = articleState.selectedTag,
+            items = articleState.tags,
+            onItemSelected = { item ->
+                viewModel.filterArticleList(tag = item, filterType = ArticleFilterType.TAG)
+            },
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ArticleListView(
-    articles: List<Article>,
     navController: NavHostController,
     viewModel: ArticlesViewModel
 ) {
     val articleState by viewModel.articleState.collectAsState()
     val state = rememberPullToRefreshState()
-
     PullToRefreshBox(
         isRefreshing = articleState.loading,
         onRefresh = { viewModel.getArticles(true) },
@@ -164,7 +130,7 @@ private fun ArticleListView(
                 .fillMaxSize()
                 .padding(8.dp)
         ) {
-            items(articles) { article ->
+            items(articleState.filteredArticles) { article ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -238,5 +204,53 @@ private fun ErrorMessage(message: String) {
             text = message,
             style = TextStyle(fontWeight = FontWeight.Medium)
         )
+    }
+}
+
+@Composable
+private fun ArticleDropdownMenu(
+    filterType: String,
+    items: List<String>,
+    onItemSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedItem by remember { mutableStateOf(filterType) }
+    selectedItem = filterType
+    Box(
+        modifier = modifier
+            .padding(4.dp)
+            .background(Color.White, shape = MaterialTheme.shapes.small)
+            .clickable { expanded = true }
+            .padding(horizontal = 8.dp, vertical = 10.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = selectedItem,
+                color = Color.Black,
+                modifier = Modifier.weight(1f),
+                maxLines = 1
+            )
+            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            items.forEach { item ->
+                DropdownMenuItem(
+                    text = { Text(item) },
+                    onClick = {
+                        selectedItem = item
+                        expanded = false
+                        onItemSelected(item)
+                    }
+                )
+            }
+        }
     }
 }

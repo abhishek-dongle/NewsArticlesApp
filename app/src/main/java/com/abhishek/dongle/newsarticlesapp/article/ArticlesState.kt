@@ -8,5 +8,10 @@ data class ArticlesState(
     val authors: List<String> = listOf(),
     val categories: List<String> = listOf(),
     val articleTypes: List<String> = listOf(),
-    val tags: List<String> = listOf()
+    val tags: List<String> = listOf(),
+    val selectedAuthor: String = ArticleFilterType.AUTHOR.text,
+    val selectedCategory: String = ArticleFilterType.CATEGORY.text,
+    val selectedArticleType: String = ArticleFilterType.ARTICLE_TYPE.text,
+    val selectedTag: String = ArticleFilterType.TAG.text,
+    val filteredArticles: List<Article> = listOf()
 )

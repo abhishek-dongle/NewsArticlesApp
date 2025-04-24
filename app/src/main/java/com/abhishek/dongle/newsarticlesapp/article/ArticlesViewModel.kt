@@ -34,18 +34,103 @@ class ArticlesViewModel : BaseViewModel() {
         }
     }
 
+    fun filterArticleList(
+        author: String = ArticleFilterType.AUTHOR.text,
+        category: String = ArticleFilterType.CATEGORY.text,
+        articleType: String = ArticleFilterType.ARTICLE_TYPE.text,
+        tag: String = ArticleFilterType.TAG.text,
+        filterType: ArticleFilterType
+    ) {
+        val currentState = _articleState.value
+        val filtered = currentState.articles.filter { article ->
+            (author == ArticleFilterType.AUTHOR.text || article.author == author)
+                    && (category == ArticleFilterType.CATEGORY.text || article.category.contains(
+                category
+            ))
+                    && (articleType == ArticleFilterType.ARTICLE_TYPE.text || article.articleType.any { it.first == articleType })
+                    && (tag == ArticleFilterType.TAG.text || article.tag.contains(tag))
+        }
+
+        val filteredState = when (filterType) {
+            ArticleFilterType.AUTHOR ->
+                ArticlesState(
+                    selectedAuthor = author,
+                    selectedCategory = ArticleFilterType.CATEGORY.text,
+                    selectedArticleType = ArticleFilterType.ARTICLE_TYPE.text,
+                    selectedTag = ArticleFilterType.TAG.text,
+                    filteredArticles = filtered
+                )
+
+            ArticleFilterType.CATEGORY ->
+                ArticlesState(
+                    selectedAuthor = ArticleFilterType.AUTHOR.text,
+                    selectedCategory = category,
+                    selectedArticleType = ArticleFilterType.ARTICLE_TYPE.text,
+                    selectedTag = ArticleFilterType.TAG.text,
+                    filteredArticles = filtered
+                )
+
+            ArticleFilterType.ARTICLE_TYPE ->
+                ArticlesState(
+                    selectedAuthor = ArticleFilterType.AUTHOR.text,
+                    selectedCategory = ArticleFilterType.CATEGORY.text,
+                    selectedArticleType = articleType,
+                    selectedTag = ArticleFilterType.TAG.text,
+                    filteredArticles = filtered
+                )
+
+            ArticleFilterType.TAG ->
+                ArticlesState(
+                    selectedAuthor = ArticleFilterType.AUTHOR.text,
+                    selectedCategory = ArticleFilterType.CATEGORY.text,
+                    selectedArticleType = ArticleFilterType.ARTICLE_TYPE.text,
+                    selectedTag = tag,
+                    filteredArticles = filtered
+                )
+        }
+
+        scope.launch {
+            _articleState.emit(
+                currentState.copy(
+                    selectedAuthor = filteredState.selectedAuthor,
+                    selectedCategory = filteredState.selectedCategory,
+                    selectedArticleType = filteredState.selectedArticleType,
+                    selectedTag = filteredState.selectedTag,
+                    filteredArticles = filtered
+                )
+            )
+        }
+    }
+
     private suspend fun updateFilteringList(articles: List<Article>) {
-        val categories = articles.flatMap { it.category }.distinct()
-        val tags = articles.flatMap { it.tag }.distinct()
-        val articleTypes = articles.flatMap { it.articleType }.distinct()
+        val categories = listOf(ArticleFilterType.CATEGORY.text) + articles
+            .flatMap { it.category }
+            .filterNot { it.equals(ArticleFilterType.CATEGORY.text, ignoreCase = true) }
+            .distinct()
+
+        val tags = listOf(ArticleFilterType.TAG.text) + articles
+            .flatMap { it.tag }
+            .filterNot { it.equals(ArticleFilterType.TAG.text, ignoreCase = true) }
+            .distinct()
+
+        val authors = listOf(ArticleFilterType.AUTHOR.text) + articles
+            .map { it.author }
+            .filterNot { it.equals(ArticleFilterType.AUTHOR.text, ignoreCase = true) }
+            .distinct()
+
+        val articleTypes = listOf(ArticleFilterType.ARTICLE_TYPE.text) + articles
+            .flatMap { it.articleType.map { type -> type.first } }
+            .filterNot { it.equals(ArticleFilterType.ARTICLE_TYPE.text, ignoreCase = true) }
+            .distinct()
 
         _articleState.emit(
             ArticlesState(
                 articles = articles,
-                authors = articles.map { it.author }.distinct(),
+                authors = authors,
                 categories = categories,
-                articleTypes = articleTypes.map { it.first }.distinct(),
-                tags = tags
+                articleTypes = articleTypes,
+                tags = tags,
+                filteredArticles = articles
             )
         )
     }
