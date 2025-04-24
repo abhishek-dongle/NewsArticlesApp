@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.abhishek.dongle.newsarticlesapp.article.ArticleFilterType
 import com.abhishek.dongle.newsarticlesapp.article.ArticlesViewModel
 
 @Composable
@@ -26,7 +25,7 @@ fun TaggedArticlesScreen(
 ) {
     val articleState = articleViewModel.articleState.collectAsState()
     val tagName = articleState.value.selectedArticleTag!!
-    articleViewModel.filterArticleList(tag = tagName, filterType = ArticleFilterType.TAG)
+    articleViewModel.filterArticlesByTag(tag = tagName)
     Column {
         AppBar(navController, tagName)
         TaggedArticleListView(articleViewModel)

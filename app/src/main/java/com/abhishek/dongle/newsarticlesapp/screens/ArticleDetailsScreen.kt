@@ -11,9 +11,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,15 +29,23 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.abhishek.dongle.newsarticlesapp.article.Article
 import com.abhishek.dongle.newsarticlesapp.article.ArticlesViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun ArticleDetailsScreen(
     navController: NavHostController,
     articleViewModel: ArticlesViewModel
 ) {
+    var isLoading by remember { mutableStateOf(true) }
     Column(modifier = Modifier.fillMaxSize()) {
         AppBar(navController, Screens.ARTICLE_DETAILS.screenName)
-        ArticleDetails(navController, articleViewModel)
+
+        LaunchedEffect(Unit) {
+            withFrameNanos { }
+            delay(800)
+            isLoading = false
+        }
+        if (isLoading) Loader() else ArticleDetails(navController, articleViewModel)
     }
 }
 
@@ -42,8 +54,8 @@ fun ArticleDetails(
     navController: NavHostController,
     viewModel: ArticlesViewModel
 ) {
-    val articleState by remember { viewModel.articleState }.collectAsState()
-    val selectedArticle = articleState.selectedArticle!!
+    val articleState by viewModel.articleState.collectAsState()
+    val selectedArticle = remember(articleState) { articleState.selectedArticle }!!
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -81,12 +93,20 @@ fun ArticleDetails(
             WebViewScreen(url = selectedArticle.pageUrl)
         }
 
-        if (viewModel.articleState.collectAsState().value.selectedArticle?.tag?.size!! > 0)
-            HorizontalList(
+        var isRendering by remember { mutableStateOf(true) }
+
+        LaunchedEffect(Unit) {
+            withFrameNanos { }
+            delay(2000)
+            isRendering = false
+        }
+        if (!isRendering) {
+            ArticleTagList(
                 viewModel = viewModel,
                 navController = navController,
                 tagList = selectedArticle.tag
             )
+        }
     }
 }
 
@@ -141,7 +161,7 @@ fun WebViewScreen(url: String) {
 }
 
 @Composable
-fun HorizontalList(
+fun ArticleTagList(
     viewModel: ArticlesViewModel,
     navController: NavHostController,
     tagList: List<String>

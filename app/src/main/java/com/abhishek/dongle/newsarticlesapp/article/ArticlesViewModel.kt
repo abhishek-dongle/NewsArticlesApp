@@ -38,6 +38,14 @@ class ArticlesViewModel : BaseViewModel() {
         }
     }
 
+    fun filterArticlesByTag(tag: String) {
+        val currentState = _articleState.value
+        val filtered = currentState.articles.filter { article ->
+            article.tag.contains(tag)
+        }
+        _articleState.value = currentState.copy(taggedArticles = filtered)
+    }
+
     fun filterArticleList(
         author: String = ArticleFilterType.AUTHOR.text,
         category: String = ArticleFilterType.CATEGORY.text,
@@ -96,8 +104,7 @@ class ArticlesViewModel : BaseViewModel() {
                     selectedCategory = filteredState.selectedCategory,
                     selectedArticleType = filteredState.selectedArticleType,
                     selectedTag = filteredState.selectedTag,
-                    filteredArticles = filtered,
-                    taggedArticles = filtered
+                    filteredArticles = filtered
                 )
             )
         }
