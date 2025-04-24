@@ -4,7 +4,8 @@ import kotlin.random.Random
 
 class ArticlesUseCase(private val articlesService: ArticlesService) {
 
-    suspend fun getArticles(): List<Article> {
+    suspend fun getArticles(forceRefresh: Boolean): List<Article> {
+        if(forceRefresh) println("Test: forceRefresh")
         val articlesRaw = articlesService.fetchArticles()
         return mapArticles(articlesRaw)
     }

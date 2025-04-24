@@ -23,12 +23,16 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +65,7 @@ fun ArticlesScreen(
             ErrorMessage(articleState.value.error!!)
         if (articleState.value.articles.isNotEmpty()) {
             ArticleDropdown(articleViewModel)
+            Divider()
             ArticleListView(articleState.value.articles, navController, articleViewModel)
         }
     }
@@ -139,32 +144,42 @@ fun ArticleDropdownMenu(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ArticleListView(
     articles: List<Article>,
     navController: NavHostController,
     viewModel: ArticlesViewModel
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
+    val articleState by viewModel.articleState.collectAsState()
+    val state = rememberPullToRefreshState()
+
+    PullToRefreshBox(
+        isRefreshing = articleState.loading,
+        onRefresh = { viewModel.getArticles(true) },
+        state = state
     ) {
-        items(articles) { article ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.Transparent,
-                ),
-                shape = RectangleShape,
-                onClick = {
-                    viewModel.setSelectedArticle(article)
-                    navController.navigate(Screens.ARTICLEDETAILS.screenName)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
+        ) {
+            items(articles) { article ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.Transparent,
+                    ),
+                    shape = RectangleShape,
+                    onClick = {
+                        viewModel.setSelectedArticle(article)
+                        navController.navigate(Screens.ARTICLEDETAILS.screenName)
+                    }
+                ) {
+                    ArticleItemView(article)
                 }
-            ) {
-                ArticleItemView(article)
             }
         }
     }

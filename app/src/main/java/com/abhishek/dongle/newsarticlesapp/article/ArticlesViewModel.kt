@@ -27,9 +27,9 @@ class ArticlesViewModel : BaseViewModel() {
         _articleState.value = _articleState.value.copy(selectedArticle = article)
     }
 
-    private fun getArticles() {
+    fun getArticles(forceRefresh: Boolean = false) {
         scope.launch {
-            val fetchedArticles = articlesUseCase.getArticles()
+            val fetchedArticles = articlesUseCase.getArticles(forceRefresh)
             updateFilteringList(fetchedArticles)
         }
     }
