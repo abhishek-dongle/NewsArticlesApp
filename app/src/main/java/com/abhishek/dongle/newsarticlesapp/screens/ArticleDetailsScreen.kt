@@ -145,7 +145,8 @@ fun WebViewScreen(url: String) {
         modifier = Modifier
             .fillMaxWidth()
             .height(300.dp)
-            .padding(top = 12.dp),
+            .padding(top = 12.dp)
+            .background(Color.LightGray),
         factory = { context ->
             WebView(context).apply {
                 layoutParams = ViewGroup.LayoutParams(
